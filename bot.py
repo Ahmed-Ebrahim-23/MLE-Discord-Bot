@@ -1,5 +1,9 @@
 import discord
 from discord import Embed
+from discord.ext import tasks
+from datetime import datetime, timedelta
+import requests
+import asyncio
 from Contest import Contest
 from User import User
 
@@ -178,13 +182,69 @@ def run_discord_bot(TOKEN):
             except Exception as e:
                 print(e)
     
+
+    #=======================================================================================================
+    # Sending Contest Reminders
+    @tasks.loop(minutes=30)
+    async def check_contest():
+            channel = client.get_channel(1075421992032927764)
+            url = 'https://codeforces.com/api/contest.list'
+            response = requests.get(url)
+            print("Status -> " + response.json()['status'])
+
+            contests = response.json()['result']
+            upcomingContests = []
+            flag = False
+
+            for contest in contests:
+                if contest["phase"] == "BEFORE":
+                        durationHours = str(int(contest["durationSeconds"]/(60*60)))
+                        durationMinute = str(int(contest["durationSeconds"]/60%60))
+                        if len(durationMinute)==1:
+                            durationMinute = durationMinute*2
+                        duration = str(durationHours+":"+durationMinute)
+
+                        # Convert Unix timestamp to a datetime object
+                        unix_timestamp = contest["startTimeSeconds"] 
+                        normalFormat = datetime.utcfromtimestamp(unix_timestamp) + timedelta(hours=2)
+                        
+                        day_of_week = normalFormat.weekday()
+                        day_name = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][day_of_week]
+
+                        con = Contest(contest["id"],contest["name"],duration,normalFormat,day_name)
+                        upcomingContests.append(con)
+            upcomingContests.reverse()
+
+            for contest in upcomingContests:
+                before_contest = contest.startTime - datetime.utcnow()
+                reminder_time = timedelta(hours=2)
+                if timedelta(hours=0) <= before_contest <= reminder_time:
+                    flag = True
+                    # send_reminder
+                    embed = Embed(
+                        color=0x00FF00,
+                        description= f"### [{contest.name}](<https://codeforces.com/contests/{contest.id}>)\n**Contest Duration** {contest.duration}\n**Starts at** {contest.day}, {contest.startTime.strftime('%d/%m/%Y %I:%M %p')}"
+                    )
+                    await channel.send(embed=embed)
+                    await channel.send('### Contest start in ~ 2 hours \n@everyone')
+                    print(before_contest)
+                else:
+                    print(False)
+            if flag:
+                await asyncio.sleep(10800)  # sleep for three hours
+
+    @check_contest.before_loop
+    async def before():
+            await client.wait_until_ready()
+            print("Finished waiting")
+
     #=======================================================================================================
     # debug code
 
     @client.event
     async def on_ready():
         await tree.sync()
-
+        check_contest.start()
         print(f'{client.user} is now running')
 
 
