@@ -231,7 +231,7 @@ def run_discord_bot(TOKEN):
             upcomingContests.reverse()
 
             for contest in upcomingContests:
-                before_contest = contest.startTime - datetime.utcnow()
+                before_contest = contest.startTime - datetime.utcnow() - timedelta(hours=2)
                 reminder_time = timedelta(hours=2)
                 if timedelta(hours=0) <= before_contest <= reminder_time:
                     flag = True
