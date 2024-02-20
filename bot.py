@@ -200,7 +200,7 @@ def run_discord_bot(TOKEN):
 
     #=======================================================================================================
     # Sending Contest Reminders
-    @tasks.loop(minutes=30)
+    @tasks.loop(minutes=1)
     async def check_contest():
             channel = client.get_channel(1075421992032927764)
             url = 'https://codeforces.com/api/contest.list'
