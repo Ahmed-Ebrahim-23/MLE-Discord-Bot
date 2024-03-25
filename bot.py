@@ -44,7 +44,7 @@ def run_discord_bot(TOKEN):
     # Upcoming codeforces contests command
     @tree.command(
         name = 'cfupcomingcontests',
-        description= 'get a list of Up Coming Contests'
+        description= 'get a list of Codeforces Upcoming Contests'
     )
     async def cfupcomingcontests(interaction : discord.Integration):
         message = Contest.UpComing_Contests_CF()
@@ -59,12 +59,12 @@ def run_discord_bot(TOKEN):
     # Upcoming contests command
     @tree.command(
         name = 'upcomingcontests',
-        description= 'get a list of all Up Coming Contests'
+        description= 'get a list of all Upcoming Contests'
     )
     async def upcomingcontests(interaction : discord.Integration):
         message = Contest.UpComing_Contests()
         embed=Embed(
-            title= "Upcoming Codeforces Contests",
+            title= "Upcoming Contests",
             color= 0xFF0000,
             description=message,
         )
